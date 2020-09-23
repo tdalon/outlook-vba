@@ -100,56 +100,56 @@ If (bAskAttach) And (Item.Attachments.Count > 0) Then
     If MsgBox("Do you want to copy attachments from original item to the Task?", vbYesNo + vbQuestion + vbDefaultButton1) = vbYes Then
         Call CopyAttachments(Item, objAppt)
     End If
-    
-    If bAskDelete Then
-        If MsgBox("Do you want to delete original item?", vbYesNo + vbQuestion + vbDefaultButton2) = vbYes Then
-            objAppt.Body = Item.Body
-            Item.Delete
-        End If
-    Else
-        ' Flag email
-        If TypeOf Item Is Outlook.MailItem Then
-            Item.MarkAsTask olMarkNoDate
-            Item.FlagRequest = "Follow up in Calendar"
-        End If
-        
-        ' Add Link to Email
-        ' Create dummy email
-        Dim olMail As Outlook.MailItem
-        Set olMail = Outlook.CreateItem(olMailItem)
-        olMail.Body = Item.Body
-        
-        sLink = "outlook:" & Item.EntryID
-        sText = Item.Subject & " (" + Item.SenderName & ")"
-        sHtml = "<a href=" & sLink & ">" & sText & "</a>"
-        olMail.HTMLBody = sHtml & "<br>" & Item.HTMLBody
-        olMail.Display                       'Required else change is not copied
-        Sleep (500)
-        ' Copy Body with Formatting : requires copy to Email then paste into Appointment
-        Set objInsp = olMail.GetInspector
-        If objInsp.EditorType = olEditorWord Then
-            Set objDoc = objInsp.WordEditor
-            Set objWord = objDoc.Application
-            Set objSel = objWord.Selection
-            With objSel
-                .WholeStory
-                .Copy
-            End With
-        End If
-        
-        ' Paste to Appointment with formatting
-        'objAppt.Subject = objAppt.Subject & vbCrLf & sLink
-        objAppt.Display 'show to add notes ' required at the beginning - else error at paste. objSel broken
-        'Sleep (500)
-        
-        Set objInsp = objAppt.GetInspector
-        Set objDoc = objInsp.WordEditor
-        Set objSel = objDoc.Windows(1).Selection
-        
-        objSel.PasteAndFormat (wdFormatOriginalFormatting)
-        olMail.Close (olDiscard)
-        
+End If
+
+If bAskDelete Then
+    If MsgBox("Do you want to delete original item?", vbYesNo + vbQuestion + vbDefaultButton2) = vbYes Then
+        objAppt.Body = Item.Body
+        Item.Delete
     End If
+Else
+    ' Flag email
+    If TypeOf Item Is Outlook.MailItem Then
+        Item.MarkAsTask olMarkNoDate
+        Item.FlagRequest = "Follow up in Calendar"
+    End If
+    
+    ' Add Link to Email
+    ' Create dummy email
+    Dim olMail As Outlook.MailItem
+    Set olMail = Outlook.CreateItem(olMailItem)
+    olMail.Body = Item.Body
+    
+    sLink = "outlook:" & Item.EntryID
+    sText = Item.Subject & " (" + Item.SenderName & ")"
+    sHtml = "<a href=" & sLink & ">" & sText & "</a>"
+    olMail.HTMLBody = sHtml & "<br>" & Item.HTMLBody
+    olMail.Display                       'Required else change is not copied
+    Sleep (500)
+    ' Copy Body with Formatting : requires copy to Email then paste into Appointment
+    Set objInsp = olMail.GetInspector
+    If objInsp.EditorType = olEditorWord Then
+        Set objDoc = objInsp.WordEditor
+        Set objWord = objDoc.Application
+        Set objSel = objWord.Selection
+        With objSel
+            .WholeStory
+            .Copy
+        End With
+    End If
+    
+    ' Paste to Appointment with formatting
+    'objAppt.Subject = objAppt.Subject & vbCrLf & sLink
+    objAppt.Display 'show to add notes ' required at the beginning - else error at paste. objSel broken
+    'Sleep (500)
+    
+    Set objInsp = objAppt.GetInspector
+    Set objDoc = objInsp.WordEditor
+    Set objSel = objDoc.Windows(1).Selection
+    
+    objSel.PasteAndFormat (wdFormatOriginalFormatting)
+    olMail.Close (olDiscard)
+    
 End If
 
 End Sub
