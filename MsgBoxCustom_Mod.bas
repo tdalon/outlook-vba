@@ -1,4 +1,4 @@
-Attribute VB_Name = "ModMsgBoxCustom"
+Attribute VB_Name = "MsgBoxCustom_Mod"
 ' This module includes Private declarations for GetCurrentThreadId, SetWindowsHookEx, SetDlgItemText, CallNextHookEx, UnhookWindowsHookEx
 ' plus code for Public Sub MsgBoxCustom, Public Sub MsgBoxCustom_Set, Public Sub MsgBoxCustom_Reset
 ' plus code for Private Sub MsgBoxCustom_Init, Private Function MsgBoxCustom_Proc

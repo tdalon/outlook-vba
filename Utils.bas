@@ -1,13 +1,13 @@
 Attribute VB_Name = "Utils"
 Private Declare Function ShellExecute _
-                         Lib "shell32.dll" Alias "ShellExecuteA" ( _
-                         ByVal hWnd As Long, _
-                         ByVal Operation As String, _
-                         ByVal Filename As String, _
-                         Optional ByVal Parameters As String, _
-                         Optional ByVal Directory As String, _
-                         Optional ByVal WindowStyle As Long = vbMinimizedFocus _
-                         ) As Long
+Lib "shell32.dll" Alias "ShellExecuteA" ( _
+ByVal hWnd As Long, _
+ByVal Operation As String, _
+ByVal Filename As String, _
+Optional ByVal Parameters As String, _
+Optional ByVal Directory As String, _
+Optional ByVal WindowStyle As Long = vbMinimizedFocus _
+) As Long
 
 
 
@@ -15,37 +15,37 @@ Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 
 Public Sub CopyToClipboard(sText As String)
-    ' Requires to add Microsoft Forms 2.0 as Reference see https://www.slipstick.com/developer/code-samples/paste-clipboard-contents-vba/
+' Requires to add Microsoft Forms 2.0 as Reference see https://www.slipstick.com/developer/code-samples/paste-clipboard-contents-vba/
 
-    Dim dObj As New DataObject
-    dObj.SetText sText
-    dObj.PutInClipboard
+Dim dObj As New DataObject
+dObj.SetText sText
+dObj.PutInClipboard
 
 
 End Sub
 
 Public Sub CopyToClipboardHTML(sHtml As String, Optional ByVal sText As String = "")
 ' Calls fclip.exe
-    sTmpHtmlFile = Environ("temp") & "\Clipboard.html"
-    file1 = FreeFile                             'Returns value of 1
-    Open sTmpHtmlFile For Output As #file1
-    Print #file1, sHtml
-    Close #file1
+sTmpHtmlFile = Environ("temp") & "\Clipboard.html"
+file1 = FreeFile                             'Returns value of 1
+Open sTmpHtmlFile For Output As #file1
+Print #file1, sHtml
+Close #file1
 
-    If sText = "" Then
-        sText = sHtml
-    End If
+If sText = "" Then
+    sText = sHtml
+End If
 
-    sTmpTxtFile = Environ("temp") & "\Clipboard.txt"
-    file1 = FreeFile                             'Returns value of 1
-    Open sTmpTxtFile For Output As #file1
-    Print #file1, sText
-    Close #file1
+sTmpTxtFile = Environ("temp") & "\Clipboard.txt"
+file1 = FreeFile                             'Returns value of 1
+Open sTmpTxtFile For Output As #file1
+Print #file1, sText
+Close #file1
 
-    ' fclip.exe must be added to your System path (edit environment variable) or edit here with full path
-    sCmd = "fclip.exe " & sTmpHtmlFile & " " & sTmpTxtFile
+' fclip.exe must be added to your System path (edit environment variable) or edit here with full path
+sCmd = "fclip.exe " & sTmpHtmlFile & " " & sTmpTxtFile
 
-    RetVal = Shell(sCmd, vbMinimizedNoFocus)
+RetVal = Shell(sCmd, vbMinimizedNoFocus)
 
 
 End Sub
@@ -56,10 +56,10 @@ Function GetCurrentItem() As Object
     Set objApp = Application
     On Error Resume Next
     Select Case TypeName(objApp.ActiveWindow)
-    Case "Explorer"
-        Set GetCurrentItem = objApp.ActiveExplorer.Selection.Item(1)
-    Case "Inspector"
-        Set GetCurrentItem = objApp.ActiveInspector.CurrentItem
+        Case "Explorer"
+            Set GetCurrentItem = objApp.ActiveExplorer.Selection.Item(1)
+        Case "Inspector"
+            Set GetCurrentItem = objApp.ActiveInspector.CurrentItem
     End Select
     
     Set objApp = Nothing
@@ -146,9 +146,9 @@ End Sub
 Function GetLastDeleted(sDate) As Object
     sFilter = "[LastModificationTime] > '" & sDate & "'"
     
-    Set myNameSpace = Application.GetNamespace("MAPI")
+    Set myNamespace = Application.GetNamespace("MAPI")
     
-    Set myFolder = myNameSpace.GetDefaultFolder(olFolderDeletedItems)
+    Set myFolder = myNamespace.GetDefaultFolder(olFolderDeletedItems)
     
     Set myMtgReq = myFolder.Items.Find(sFilter)
     
@@ -185,8 +185,8 @@ Sub CopyAttachments(objSourceItem, objTargetItem)
 End Sub
 
 Function FileOpen(initialFilename As String, _
-                  Optional sDesc As String = "Excel (*.xls*)", _
-                  Optional sFilter As String = "*.xls*") As String
+    Optional sDesc As String = "Excel (*.xls*)", _
+    Optional sFilter As String = "*.xls*") As String
     With Word.Application.FileDialog(msoFileDialogOpen)
         .ButtonName = "&Open"
         .initialFilename = initialFilename
@@ -212,23 +212,23 @@ End Function
 
 ' https://stackoverflow.com/a/218199/2043349
 Public Function URLEncode( _
-       StringVal As String, _
-       Optional SpaceAsPlus As Boolean = False _
-       ) As String
+StringVal As String, _
+Optional SpaceAsPlus As Boolean = False _
+) As String
 
-    Dim StringLen As Long: StringLen = Len(StringVal)
+Dim StringLen As Long: StringLen = Len(StringVal)
 
-    If StringLen > 0 Then
-        ReDim Result(StringLen) As String
-        Dim i As Long, CharCode As Integer
-        Dim Char As String, Space As String
-
-        If SpaceAsPlus Then Space = "+" Else Space = "%20"
-
-        For i = 1 To StringLen
-            Char = Mid$(StringVal, i, 1)
-            CharCode = Asc(Char)
-            Select Case CharCode
+If StringLen > 0 Then
+    ReDim Result(StringLen) As String
+    Dim i As Long, CharCode As Integer
+    Dim Char As String, Space As String
+    
+    If SpaceAsPlus Then Space = "+" Else Space = "%20"
+    
+    For i = 1 To StringLen
+        Char = Mid$(StringVal, i, 1)
+        CharCode = Asc(Char)
+        Select Case CharCode
             Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
                 Result(i) = Char
             Case 32
@@ -237,18 +237,62 @@ Public Function URLEncode( _
                 Result(i) = "%0" & Hex(CharCode)
             Case Else
                 Result(i) = "%" & Hex(CharCode)
-            End Select
-        Next i
-        URLEncode = Join(Result, "")
-    End If
+        End Select
+    Next i
+    URLEncode = Join(Result, "")
+End If
 End Function
 
 Function GetEmailAddress()
-' https://stackoverflow.com/questions/26519325/how-to-get-the-email-address-of-the-current-logged-in-user
-Dim olFol As Outlook.Folder
-Set olNS = Application.GetNamespace("MAPI") ' Outlook.NameSpace
-Set olFol = olNS.GetDefaultFolder(olFolderInbox)
-
-GetEmailAddress = olFol.Parent.Name
+    ' https://stackoverflow.com/questions/26519325/how-to-get-the-email-address-of-the-current-logged-in-user
+    Dim olFol As Outlook.Folder
+    Set olNS = Application.GetNamespace("MAPI") ' Outlook.NameSpace
+    Set olFol = olNS.GetDefaultFolder(olFolderInbox)
+    
+    GetEmailAddress = olFol.Parent.Name
 End Function
 
+
+Function GetFromEmail(oItem As Object) As String
+    Dim oAddressEntry As Outlook.AddressEntry
+    
+    If TypeOf oItem Is Outlook.MailItem Then
+        Set oAddressEntry = oItem.Sender
+        
+    ElseIf (TypeOf oItem Is Outlook.AppointmentItem) Then
+        Set oAddressEntry = ApptItem.GetOrganizer
+    End If
+    
+    
+    If oAddressEntry.Type = "SMTP" Then
+        GetFromEmail = oAddressEntry.Address
+    ElseIf oAddressEntry.Type = "EX" Then
+        GetFromEmail = oAddressEntry.GetExchangeUser.PrimarySmtpAddress
+    End If
+End Function
+
+Function GetAssociatedMeeting(objAppt As AppointmentItem)
+
+    Dim myNamespace As Outlook.NameSpace
+    Dim myFolder As Outlook.Folder
+    Dim myItems As Outlook.Items
+    Dim myRestrictItems As Outlook.Items
+    Dim myItem As Outlook.MailItem
+  
+    Set myNamespace = Application.GetNamespace("MAPI")
+    Set myFolder = _
+        myNamespace.GetDefaultFolder(olFolderInbox)
+    Set myItems = myFolder.Items
+    
+    sFilter = "[MessageClass] = 'IPM.Schedule.Meeting.Request' Or [Subject] = '" & objAppt.Subject & "'"
+    'sFilter = "[MessageClass] = 'IPM.Schedule.Meeting.Request' Or [Categories] = 'Business'"
+    
+    Set myRestrictItems = myItems.Restrict(sFilter)
+    For i = myRestrictItems.Count To 1 Step -1
+        Debug.Print myRestrictItems(i).Subject
+    Next
+    If myRestrictItems.Count > 0 Then
+        Set GetAssociatedMeeting = myRestrictItems(1)
+    End If
+    
+End Function

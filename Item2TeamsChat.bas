@@ -33,9 +33,9 @@ Sub Item2Chat(Optional ByVal onlyToSender As Boolean = False, Optional ByVal ans
     End If
     
     'Call RunLink(sLink)
-    sLink = Replace(sLink, "https://teams.microsoft.com", "msteams:")
+    'sLink = Replace(sLink, "https://teams.microsoft.com", "msteams:")
     openUrl (sLink)
-    'Debug.Print sLink
+    Debug.Print sLink
 End Sub
 
 Function Item2ChatLink(oItem As Object, Optional ByVal onlyToSender As Boolean = False, Optional ByVal ansCopySubjectToMessage As String = "") As String
@@ -43,21 +43,6 @@ Function Item2ChatLink(oItem As Object, Optional ByVal onlyToSender As Boolean =
     ' Item2Chat(True) - only open Chat window with Sender
     ' Calls Utils: GetCurrentItem, RunLink,CopyToClipboardHTML*
     
-    
-    Dim sTopicName As String
-    Select Case True
-        Case TypeOf oItem Is Outlook.MailItem
-            'Dim oMailItem As Outlook.MailItem
-            'Set oMailItem = oItem
-            sTopicName = "[Email] " & oItem.Subject
-        Case TypeOf oItem Is Outlook.MeetingItem
-            sTopicName = "[Meeting] " & oItem.Subject
-        Case Else
-            
-    End Select
-    
-    ' Input box for TopicName
-    sTopicName = InputBox("Enter the Chat Group Name", "Outlook to Chat", sTopicName)
     
     Dim sEmails As String
     Dim sLink As String
@@ -76,64 +61,108 @@ Function Item2ChatLink(oItem As Object, Optional ByVal onlyToSender As Boolean =
     If onlyToSender Then
         ansCc = vbNo
     Else
-        MsgBoxCustom_Set vbYes, "All"
-        MsgBoxCustom_Set vbNo, "No Cc"
-        MsgBoxCustom ans, "Which Recipients do you wan to include in the Group chat?", vbYesNo + vbQuestion, "Outlook To Chat: Recipients"
+        MsgBoxCustom_Set vbYes, "From only"
+        MsgBoxCustom_Set vbNo, "All"
+        MsgBoxCustom_Set vbCancel, "No Cc"
+        MsgBoxCustom ans, "Which Recipients do you wan to include in the Group chat?", vbYesNoCancel + vbQuestion, "Outlook To Chat: Recipients"
         If (ans = vbYes) Then
-            ansCcc = vbYes
+            ansTo = vbNo
+            ansCc = vbNo
         ElseIf (ans = vbNo) Then
+            ansCc = vbYes
+        ElseIf (ans = vbCancel) Then
             ansCc = vbNo
         End If
     End If
     
     curEmail = GetEmailAddress()
     
+    ' From Inbox Meeting Request
+    If (TypeOf oItem Is Outlook.MeetingItem) Then
+        Set oItem = oItem.GetAssociatedAppointment(False)
+    End If
     ' Add From Email
     'Debug.Print GetSenderEmail(oItem)
     
+    Debug.Print oItem.Recipients.Count & " recipients."
+    
+    If (ansFrom = vbYes) Then
+        sNewEmail = GetFromEmail(oItem)
+        sEmails = sEmails & sNewEmail & ","
+    End If
+    
+    If (ans = vbYes) Then
+        GoTo EndLoopRecip
+    End If
     
     For Each oRecip In oItem.Recipients
         sNewEmail = Recip2Email(oRecip)
+        Debug.Print sNewEmail
         If (sNewEmail = curEmail) Then
             GoTo NextRecip
         End If
+        
         If TypeOf oItem Is Outlook.MailItem Then
-            If (ansTo = vbYes) And (oRecip.Type = Outlook.OlMailRecipientType.olTo) Then
-                sEmails = sEmails & sNewEmail & ","
-            ElseIf (ansCc = vbYes) And (oRecip.Type = Outlook.OlMailRecipientType.olCC) Then
-                sEmails = sEmails & sNewEmail & ","
-            ElseIf (ansFrom = vbYes) And (oRecip.Type = Outlook.OlMailRecipientType.olOriginator) Then
-                sEmails = sEmails & sNewEmail & ","
-            End If
-        ElseIf TypeOf oItem Is Outlook.MeetingItem Then
-            If (ansTo = vbYes) And (oRecip.Type = Outlook.OlMeetingRecipientType.olRequired) Then
-                sEmails = sEmails & sNewEmail & ","
-            ElseIf (ansCc = vbYes) And (oRecip.Type = Outlook.OlMeetingRecipientType.olOptional) Then
-                sEmails = sEmails & sNewEmail & ","
-            ElseIf (ansFrom = vbYes) And (oRecip.Type = Outlook.OlMeetingRecipientType.olOrganizer) Then
-                sEmails = sEmails & sNewEmail & ","
+            If (ansFrom = vbYes) And (oRecip.Type = OlMailRecipientType.olOriginator) Then
+                sEmails = sEmails & oItem.SenderEmailAddress & ","
             End If
             
-        End If
+            If (ansTo = vbYes) And (oRecip.Type = OlMailRecipientType.olTo) Then
+                sEmails = sEmails & sNewEmail & ","
+            ElseIf (ansCc = vbYes) And (oRecip.Type = OlMailRecipientType.olCC) Then
+                sEmails = sEmails & sNewEmail & ","
+            ElseIf (ansFrom = vbYes) And (oRecip.Type = OlMailRecipientType.olOriginator) Then
+                sEmails = sEmails & sNewEmail & ","
+            End If
+        ElseIf (TypeOf oItem Is Outlook.AppointmentItem) Then    ' MeetingItem in Inbox view
+        Debug.Print oRecip.Type
+        If (ansTo = vbYes) And (oRecip.Type = OlMeetingRecipientType.olRequired) Then
+            sEmails = sEmails & sNewEmail & ","
+        ElseIf (ansCc = vbYes) And (oRecip.Type = OlMeetingRecipientType.olOptional) Then
+            sEmails = sEmails & sNewEmail & ","
+        ElseIf (ansFrom = vbYes) And (oRecip.Name = oItem.organizer) Then '(oRecip.Type = OlMeetingRecipientType.olOrganizer) Then ' Bug for organizer oRecip.Type is olRequired
+        sEmails = sEmails & sNewEmail & ","
+    End If
+    
+End If
 NextRecip:
-    Next oRecip
-    
-    
-    
-    ' Remove trailing ,
-    sEmails = Left(sEmails, Len(sEmails) - 1)
-    
-    sLink = sLink & sEmails
+Next oRecip
+EndLoopRecip:
+
+
+' Remove trailing ,
+sEmails = Left(sEmails, Len(sEmails) - 1)
+
+sLink = sLink & sEmails
+
+
+
+' Add TopicName - won't be set if group already existed
+' sLink = sLink & "&topicName=RE:" & oMailItem.Subject
+
+' Add message
+
+If InStr(sEmails, ",") Then ' Group Chat more than 1-1 can be named => do not copy subject to message because already in Chat Subject
+    Dim sTopicName As String
+    Select Case True
+        Case TypeOf oItem Is Outlook.MailItem
+            'Dim oMailItem As Outlook.MailItem
+            'Set oMailItem = oItem
+            sTopicName = "[Email] " & oItem.Subject
+        Case TypeOf oItem Is Outlook.MeetingItem
+            sTopicName = "[Meeting] " & oItem.Subject
+        Case TypeOf oItem Is Outlook.AppointmentItem
+            sTopicName = "[Meeting] " & oItem.Subject
+        Case Else
+            
+    End Select
+
+    ' Input box for TopicName
+    sTopicName = InputBox("Enter the Chat Group Name", "Outlook to Chat", sTopicName)
     
     ' Name Group Chat - does not work for special characters needs to encode
     sLink = sLink & "&topicName=" & Replace(sTopicName, ":", "") ': are not supported
     
-    ' Add TopicName - won't be set if group already existed
-    ' sLink = sLink & "&topicName=RE:" & oMailItem.Subject
-    
-    ' Add message
-    
-    If InStr(sEmails, ",") Then ' Group Chat more than 1-1 can be named => do not copy subject to message because already in Chat Subject
     ansCopySubjectToMessage = vbNo
 End If
 If ansCopySubjectToMessage = "" Then
@@ -141,11 +170,28 @@ If ansCopySubjectToMessage = "" Then
 End If
 
 If (ansCopySubjectToMessage = vbYes) Then
+
+    Select Case True
+        Case TypeOf oItem Is Outlook.MailItem
+            'Dim oMailItem As Outlook.MailItem
+            'Set oMailItem = oItem
+            sTopicName = "[Email] " & oItem.Subject
+        Case TypeOf oItem Is Outlook.MeetingItem
+            sTopicName = "[Meeting] " & oItem.Subject
+        Case TypeOf oItem Is Outlook.AppointmentItem
+            sTopicName = "[Meeting] " & oItem.Subject
+        Case Else
+            
+    End Select
+
+    ' Input box for TopicName
+    sTopicName = InputBox("Enter the Message First line", "Outlook to Chat", sTopicName)
     sLink = sLink & "&message=" & sTopicName   '& vbCrl & oMailItem.Body 'Markdown formatting does not work e.g. ## or * *
 End If
 
 
 Item2ChatLink = sLink
+'Debug.Print sLink
 
 End Function
 
@@ -208,9 +254,7 @@ Function Item2TeamsMeetingLink(oItem As Object, Optional ByVal onlyToSender As B
     For Each oRecip In oItem.Recipients
         
         If ((ansTo = vbYes) And (oRecip.Type = Outlook.OlMailRecipientType.olTo)) Or ((ansCc = vbYes) And (oRecip.Type = Outlook.OlMailRecipientType.olCC)) Then
-            
             sEmails = sEmails & Recip2Email(oRecip) & ","
-            
         End If
         
     Next oRecip
@@ -220,7 +264,6 @@ Function Item2TeamsMeetingLink(oItem As Object, Optional ByVal onlyToSender As B
     If (ansFrom = vbYes) Then
         sEmails = sEmails & GetSenderEmail(oItem) & ","
     End If
-    
     
     ' Remove trailing ,
     sEmails = Left(sEmails, Len(sEmails) - 1)
