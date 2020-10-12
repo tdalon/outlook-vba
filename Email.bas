@@ -65,8 +65,7 @@ Sub SendAndFile()
     
 End Sub
 
-' https://www.slipstick.com/developer/code-samples/create-outlook-appointment-from-message/
-'Private Sub CreateLogCalendar()
+' https://tdalon.blogspot.com/2020/10/outlook-email-to-tasks-calendar.html
 Public Sub CopyToTasksCalendar()
 ' Calls GetCurrentItem
 
@@ -112,6 +111,7 @@ Else
     If TypeOf Item Is Outlook.MailItem Then
         Item.MarkAsTask olMarkNoDate
         Item.FlagRequest = "Follow up in Calendar"
+        Item.Save
     End If
     
     ' Add Link to Email
@@ -141,7 +141,7 @@ Else
     ' Paste to Appointment with formatting
     'objAppt.Subject = objAppt.Subject & vbCrLf & sLink
     objAppt.Display 'show to add notes ' required at the beginning - else error at paste. objSel broken
-    'Sleep (500)
+    Sleep (500)
     
     Set objInsp = objAppt.GetInspector
     Set objDoc = objInsp.WordEditor

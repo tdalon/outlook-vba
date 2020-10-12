@@ -33,7 +33,7 @@ Sub Item2Chat(Optional ByVal onlyToSender As Boolean = False, Optional ByVal ans
     End If
     
     'Call RunLink(sLink)
-    'sLink = Replace(sLink, "https://teams.microsoft.com", "msteams:")
+    sLink = Replace(sLink, "https://teams.microsoft.com", "msteams:")
     openUrl (sLink)
     Debug.Print sLink
 End Sub
@@ -56,6 +56,9 @@ Function Item2ChatLink(oItem As Object, Optional ByVal onlyToSender As Boolean =
     ansFrom = vbYes
     ansTo = vbYes
     
+    If oItem.Recipients.Count = 1 Then
+        onlyToSender = True
+    End If
     
     ' Do you want to add CC Emails?
     If onlyToSender Then
