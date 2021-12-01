@@ -1,5 +1,5 @@
 Attribute VB_Name = "Utils"
-Private Declare Function ShellExecute _
+Private Declare PtrSafe Function ShellExecute _
 Lib "shell32.dll" Alias "ShellExecuteA" ( _
 ByVal hWnd As Long, _
 ByVal Operation As String, _
@@ -11,12 +11,16 @@ Optional ByVal WindowStyle As Long = vbMinimizedFocus _
 
 
 
-Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+#If VBA7 Then
+    Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As LongPtr)
+#Else
+    Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+#End If
 
 
 Public Sub CopyToClipboard(sText As String)
 ' Requires to add Microsoft Forms 2.0 as Reference see https://www.slipstick.com/developer/code-samples/paste-clipboard-contents-vba/
-
+' https://stackoverflow.com/questions/35610429/why-do-i-not-see-the-microsoft-forms-2-0-object-library Browse %windir%/system32/FM20.dll
 Dim dObj As New DataObject
 dObj.SetText sText
 dObj.PutInClipboard
