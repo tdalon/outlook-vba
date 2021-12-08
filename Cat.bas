@@ -12,12 +12,10 @@ Sub AutoMarkMeetingPrivate(objMeetingRequest As MeetingItem)
 End Sub
 
 Sub Cat_InitDic()
-
 ' Init Variable
     Set oDomain2CategoryDic = CreateObject("Scripting.Dictionary")
-    oDomain2CategoryDic.Add "@csi-online.de", "4CSI"     'Add some domain <-> Category Mapping
-    oDomain2CategoryDic.Add "@herotcg.de", "4Hero"
-    oDomain2CategoryDic.Add "@psw-engineering.de", "4PSW"
+    oDomain2CategoryDic.Add "@customer1.com", "4Customer1"     'Add some domain <-> Category Mapping
+    oDomain2CategoryDic.Add "@customer2.de", "4Customer2"
 End Sub
 
 
