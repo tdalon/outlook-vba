@@ -19,35 +19,13 @@ Sub Cat_InitDic()
 End Sub
 
 
-Function Cat_CheckRecip(oItem As Object) As Boolean
-
-' Check recipients
-Dim recs As Outlook.Recipients
-Dim rec As Outlook.Recipient
-Dim sCat As String
-
-Set recs = oItem.Recipients
-
-For i = recs.Count To 1 Step -1
-    For Each varKey In oDomain2CategoryDic.Keys()
-        Set rec = recs.Item(i)
-        If (InStr(rec.Address, varKey) > 0) Then
-            sCat = oDomain2CategoryDic(varKey)
-            Call SetCategory(oItem, sCat)
-            Cat_CheckRecip = True
-            Exit Function
-        End If
-    Next
-Next
-Cat_CheckRecip = False
-End Function
-
 ' ---------------------------
 Sub Cat_CheckItem(oItem As Object)
 If TypeOf oItem Is MeetingItem Then
-   Set objMeetingRequest = oItem
-   Set oItem = objMeetingRequest.GetAssociatedAppointment(True)
-End If ' MeetingRequest
+Dim objMeetingRequest As Object
+   Set objMeetingRequest = oItem.GetAssociatedAppointment(True)
+   Call Cat_CheckItem(objMeetingRequest)
+End If ' MeetingRequest: categorize Appointment and MeetingRequest
 
 
 ' Check FromEmailAddress
@@ -83,6 +61,29 @@ For Each varKey In oDomain2CategoryDic.Keys()
     End If
 Next
 End Sub
+
+Function Cat_CheckRecip(oItem As Object) As Boolean
+
+' Check recipients
+Dim recs As Outlook.Recipients
+Dim rec As Outlook.Recipient
+Dim sCat As String
+
+Set recs = oItem.Recipients
+
+For i = recs.Count To 1 Step -1
+    For Each varKey In oDomain2CategoryDic.Keys()
+        Set rec = recs.Item(i)
+        If (InStr(rec.Address, varKey) > 0) Then
+            sCat = oDomain2CategoryDic(varKey)
+            Call SetCategory(oItem, sCat)
+            Cat_CheckRecip = True
+            Exit Function
+        End If
+    Next
+Next
+Cat_CheckRecip = False
+End Function
 
 ' ---------------------------
 Sub Cat_CheckCurrentItems()
